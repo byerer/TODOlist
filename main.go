@@ -1,51 +1,29 @@
 package main
 
 import (
+	"TODOlist/controller"
+	"TODOlist/dao/mysql"
+	"TODOlist/models"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strconv"
 )
 
-type TODO struct {
-	Content string `json:"content"`
-	Done    bool   `json:"done"`
-}
-
-var todos []TODO
+var todos []models.TODO
 
 func main() {
-	r := gin.Default()
-	r.POST("/todo", func(c *gin.Context) {
-		var todo TODO
-		c.BindJSON(&todo)
-		todos = append(todos, todo)
-		fmt.Println(todos)
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
-	r.DELETE("/todo/:index", func(c *gin.Context) {
-		index, _ := strconv.Atoi(c.Param("index"))
-		todos = append(todos[:index], todos[index+1:]...)
-		c.JSON(http.StatusOK, gin.H{
-			"status": "ok",
-		})
-	})
-	r.PUT("todo/:index", func(c *gin.Context) {
-		index, _ := strconv.Atoi(c.Param("index"))
-		var todo TODO
-		c.BindJSON(&todo)
-		todos[index] = todo
-		c.JSON(http.StatusOK, gin.H{
-			"status": "ok",
-		})
-	})
-	r.GET("/todo", func(c *gin.Context) {
-		c.JSON(http.StatusOK, todos)
-	})
+	//gorm
+	err := mysql.InitMysql()
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	r.GET("todo/:index", func(c *gin.Context) {
-		index, _ := strconv.Atoi(c.Param("index"))
-		c.JSON(http.StatusOK, todos[index])
-	})
+	//router
+	r := gin.Default()
+	r.POST("/todo", controller.AddToDo)
+	r.DELETE("/todo/:index", controller.DeleteToDo)
+	r.PUT("/todo/:index", controller.UpdateToDo)
+	r.GET("/todo", controller.GetAllToDO)
+	r.GET("/todo/:index", controller.GetTodo)
 	r.Run(":8080")
+
 }
