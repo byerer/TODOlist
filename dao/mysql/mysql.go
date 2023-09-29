@@ -21,5 +21,9 @@ func InitMysql() error {
 	if err != nil {
 		fmt.Println(err)
 	}
+	err = DB.AutoMigrate(&models.User{})
+	if err != nil {
+		fmt.Println(err)
+	}
 	return nil
 }

@@ -3,12 +3,9 @@ package main
 import (
 	"TODOlist/controller"
 	"TODOlist/dao/mysql"
-	"TODOlist/models"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )
-
-var todos []models.TODO
 
 func main() {
 	//gorm
@@ -19,11 +16,17 @@ func main() {
 
 	//router
 	r := gin.Default()
+	//user
+	r.GET("/login", controller.Login)
+	r.POST("/register", controller.Register)
+
+	//todo
 	r.POST("/todo", controller.AddToDo)
 	r.DELETE("/todo/:index", controller.DeleteToDo)
 	r.PUT("/todo/:index", controller.UpdateToDo)
 	r.GET("/todo", controller.GetAllToDO)
 	r.GET("/todo/:index", controller.GetTodo)
-	r.Run(":8080")
+	r.GET("/parsetoken", controller.ParseToken)
+	_ = r.Run(":8080")
 
 }
