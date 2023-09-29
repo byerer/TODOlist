@@ -13,7 +13,13 @@ func Login(c *gin.Context) {
 	var user models.User
 	username := c.Query("username")
 	password := c.Query("password")
-	mysql.DB.Where("username = ? AND password = ?", username, password).Find(&user)
+	result := mysql.DB.Where("username = ? AND password = ?", username, password).Find(&user)
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "user does not exist",
+		})
+		return
+	}
 	token, _ := jwt.GenerateToken(user.UserID, user.Username)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "login success",
@@ -25,7 +31,13 @@ func Login(c *gin.Context) {
 func Register(c *gin.Context) {
 	var user models.User
 	_ = c.BindJSON(&user)
-	mysql.DB.Create(user)
+	result := mysql.DB.Create(user)
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "register failed",
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"message": "register success",
 		"user":    user,

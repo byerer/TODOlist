@@ -3,6 +3,7 @@ package main
 import (
 	"TODOlist/controller"
 	"TODOlist/dao/mysql"
+	"TODOlist/middlewares/jwt"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )
@@ -21,12 +22,14 @@ func main() {
 	r.POST("/register", controller.Register)
 
 	//todo
-	r.POST("/todo", controller.AddToDo)
-	r.DELETE("/todo/:index", controller.DeleteToDo)
-	r.PUT("/todo/:index", controller.UpdateToDo)
-	r.GET("/todo", controller.GetAllToDO)
-	r.GET("/todo/:index", controller.GetTodo)
-	r.GET("/parsetoken", controller.ParseToken)
+	todo := r.Group("/todo", jwt.MiddleWareJWT)
+	{
+		todo.GET("", controller.GetAllToDO)
+		todo.POST("", controller.AddToDo)
+		todo.DELETE("/:id", controller.VerifyPermission, controller.DeleteToDo)
+		todo.PUT("/:id", controller.VerifyPermission, controller.UpdateToDo)
+		todo.GET("/:id", controller.VerifyPermission, controller.GetTodo)
+	}
 	_ = r.Run(":8080")
 
 }

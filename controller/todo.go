@@ -3,14 +3,23 @@ package controller
 import (
 	"TODOlist/dao/mysql"
 	"TODOlist/models"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func AddToDo(c *gin.Context) {
 	var todo models.TODO
-	c.BindJSON(&todo)
+	_ = c.BindJSON(&todo)
+	userID, ok := c.Get("userID")
+	if !ok {
+		//handle error
+	}
+	todo.UserID = userID.(int64)
+	todo.ID = generateTodoID(todo.UserID)
+	fmt.Println(todo)
 	mysql.DB.Create(todo)
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
@@ -19,9 +28,9 @@ func AddToDo(c *gin.Context) {
 }
 
 func DeleteToDo(c *gin.Context) {
-	index, _ := strconv.Atoi(c.Param("index"))
-	err := mysql.DB.Where("id=?", index).Delete(&models.TODO{})
-	if err != nil {
+	index := c.Param("id")
+	result := mysql.DB.Where("id = ?", index).Delete(&models.TODO{})
+	if result.RowsAffected == 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "record does not exist",
 		})
@@ -32,31 +41,59 @@ func DeleteToDo(c *gin.Context) {
 }
 
 func UpdateToDo(c *gin.Context) {
-	index, _ := strconv.Atoi(c.Param("index"))
+	index := c.Param("id")
 	var todo models.TODO
-	c.BindJSON(&todo)
-	mysql.DB.Model(&models.TODO{}).Where("id=?", index).Updates(todo)
+	_ = c.BindJSON(&todo)
+	userID, ok := c.Get("userID")
+	if !ok {
+
+	}
+	todo.UserID = userID.(int64)
+	todo.ID = generateTodoID(todo.UserID)
+	mysql.DB.Model(&models.TODO{}).Where("id = ?", index).Updates(todo)
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
 	})
 }
 
 func GetAllToDO(c *gin.Context) {
-	var todo []models.TODO
-	mysql.DB.Find(&todo)
+	userID, ok := c.Get("userID")
+	if !ok {
+
+	}
+	var todos []models.TODO
+	mysql.DB.Where("userID = ?", userID).Find(&todos)
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+		"obj":    todos,
+	})
+}
+
+func GetTodo(c *gin.Context) {
+	index := c.Param("id")
+	var todo models.TODO
+	todo.ID = index
+	mysql.DB.Where("ID = ?", todo.ID).Find(&todo)
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
 		"obj":    todo,
 	})
 }
 
-func GetTodo(c *gin.Context) {
-	index, _ := strconv.Atoi(c.Param("index"))
-	var todo models.TODO
-	todo.ID = int64(index)
-	mysql.DB.First(&todo)
-	c.JSON(http.StatusOK, gin.H{
-		"status": "ok",
-		"obj":    todo,
-	})
+// VerifyPermission 验证是否越权 写成中间件
+func VerifyPermission(c *gin.Context) {
+	userID, _ := c.Get("userID")
+	if strconv.FormatInt(userID.(int64), 10) != c.Param("id")[:4] {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "what are you fucking doing?",
+		})
+		c.Abort()
+	}
+	c.Next()
+}
+
+func generateTodoID(userID int64) string {
+	Timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	todoID := strconv.FormatInt(userID, 10) + Timestamp
+	return todoID
 }
