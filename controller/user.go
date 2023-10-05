@@ -11,9 +11,8 @@ import (
 
 func Login(c *gin.Context) {
 	var user models.User
-	username := c.Query("username")
-	password := c.Query("password")
-	result := mysql.DB.Where("username = ? AND password = ?", username, password).Find(&user)
+	_ = c.BindJSON(&user)
+	result := mysql.DB.Where("username = ? AND password = ?", user.Username, user.Password).Find(&user)
 	if result.RowsAffected == 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "user does not exist",

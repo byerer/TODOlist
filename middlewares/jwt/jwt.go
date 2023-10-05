@@ -24,6 +24,7 @@ func MiddleWareJWT(c *gin.Context) {
 			"message": "please log in",
 		})
 		c.Abort()
+		return
 	} //redirect?
 
 	//parse token
@@ -33,6 +34,7 @@ func MiddleWareJWT(c *gin.Context) {
 			"message": "login expired",
 		})
 		c.Abort()
+		return
 	}
 	var user models.User
 	result := mysql.DB.Where("userID = ? AND username = ?", claims.UserID, claims.Username).Find(&user)

@@ -23,7 +23,7 @@ func AddToDo(c *gin.Context) {
 	mysql.DB.Create(todo)
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
-		"todos":  todo,
+		"todo":   todo,
 	})
 }
 
@@ -65,7 +65,7 @@ func GetAllToDO(c *gin.Context) {
 	mysql.DB.Where("userID = ?", userID).Find(&todos)
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
-		"obj":    todos,
+		"todos":  todos,
 	})
 }
 
@@ -76,7 +76,7 @@ func GetTodo(c *gin.Context) {
 	mysql.DB.Where("ID = ?", todo.ID).Find(&todo)
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
-		"obj":    todo,
+		"todo":   todo,
 	})
 }
 
