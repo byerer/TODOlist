@@ -6,6 +6,7 @@ import (
 	"TODOlist/middlewares/jwt"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func main() {
@@ -17,10 +18,18 @@ func main() {
 
 	//router
 	r := gin.Default()
+	//front
+	r.Static("/static", "./static")
+	r.LoadHTMLFiles("./view/index.html", "./view/todo.html")
+	r.GET("index", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", nil)
+	})
 	//user
-	r.GET("/login", controller.Login)
+	r.POST("/login", controller.Login)
 	r.POST("/register", controller.Register)
-
+	r.GET("/menu", jwt.MiddleWareJWT, func(c *gin.Context) {
+		c.HTML(http.StatusOK, "todo.html", nil)
+	})
 	//todo
 	todo := r.Group("/todo", jwt.MiddleWareJWT)
 	{
