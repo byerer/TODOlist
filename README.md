@@ -28,3 +28,10 @@ solution：
 - 邮件提醒
 - 数据库查询效率
 - docker
+
+# 感想
+docker太妙了  
+js好复杂
+
+# question
+- 
